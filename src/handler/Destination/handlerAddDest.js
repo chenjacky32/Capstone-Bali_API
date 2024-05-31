@@ -1,5 +1,5 @@
-import { connection, query } from '../../services/connDB.js';
-import validateToken from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
+import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const AddDestination = async (req, res) => {
   const { customAlphabet } = await import('nanoid');
@@ -39,8 +39,11 @@ const AddDestination = async (req, res) => {
     return responseData;
   }
   try {
-    const queryDataDest = `SELECT * FROM destination WHERE name_dest = ?`;
-    const Data_Dest = await query(queryDataDest, [name_dest]);
+    const Data_Dest = await prisma.destination.findMany({
+      where: {
+        name_dest,
+      },
+    });
     if (Data_Dest.length > 0) {
       const response = res.response({
         status: 'fail',
@@ -49,8 +52,16 @@ const AddDestination = async (req, res) => {
       response.code(400);
       return response;
     }
-    const queryData = `INSERT INTO destination (dest_id,name_dest,description,img,location) VALUES (?,?,?,?,?)`;
-    await query(queryData, [dest_id, name_dest, description, img, location]);
+
+    await prisma.destination.create({
+      data: {
+        dest_id,
+        name_dest,
+        description,
+        img,
+        location,
+      },
+    });
 
     const response = res.response({
       status: 'success',

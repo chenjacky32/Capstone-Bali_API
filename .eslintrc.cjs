@@ -19,5 +19,6 @@ module.exports = {
     'next-line camelcase': 'off',
     camelcase: 'off',
     'no-console': 'off',
+    'import/no-extraneous-dependencies': 'off',
   },
 };

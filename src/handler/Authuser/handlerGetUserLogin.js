@@ -1,10 +1,8 @@
-import { connection, query } from '../../services/connDB.js';
-import validateToken from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
+import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const GetUserLogin = async (req, res) => {
   const { authorization } = req.headers;
-
-  // validasi token
 
   if (!authorization) {
     const responseData = res.response({
@@ -28,8 +26,11 @@ const GetUserLogin = async (req, res) => {
   }
 
   try {
-    const queryData = `SELECT * FROM users WHERE user_id = ? `;
-    const userData = await query(queryData, [decoded.userId]);
+    const userData = await prisma.users.findMany({
+      where: {
+        user_id: decoded.userId,
+      },
+    });
 
     if (userData.length === 0) {
       const responseData = res.response({

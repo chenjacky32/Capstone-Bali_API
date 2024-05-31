@@ -1,31 +1,36 @@
 import crypto from 'crypto';
-import { connection, query } from '../../services/connDB.js';
-import generateToken from '../../middleware/Jwt-Token.js';
+import { generateToken } from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
 
 const LoginUser = async (req, res) => {
   const { email, password } = req.payload;
-  try {
-    const queryData = `SELECT * FROM users WHERE email = ? `;
-    const userData = await query(queryData, [email]);
 
-    if (!email) {
-      const response = res.response({
-        status: 'fail',
-        message: 'Email is not allowed to be Empty',
-      });
-      response.code(400);
-      return response;
-    }
-    if (!password) {
-      const response = res.response({
-        status: 'fail',
-        message: 'Password is not allowed to be Empty',
-      });
-      response.code(400);
-      return response;
-    }
+  if (!email) {
+    const response = res.response({
+      status: 'fail',
+      message: 'Email is not allowed to be Empty',
+    });
+    response.code(400);
+    return response;
+  }
+  if (!password) {
+    console.log('password kosong');
+    const response = res.response({
+      status: 'fail',
+      message: 'Password is not allowed to be Empty',
+    });
+    response.code(400);
+    return response;
+  }
+  try {
+    const userData = await prisma.users.findMany({
+      where: {
+        email,
+      },
+    });
 
     if (userData.length === 0) {
+      console.log('user tidak ada');
       const response = res.response({
         status: 'fail',
         message: 'Invalid email or password',
@@ -40,7 +45,10 @@ const LoginUser = async (req, res) => {
       .update(password)
       .digest('hex');
 
+    console.log(hashedPassword);
+
     if (hashedPassword !== user.password) {
+      console.log('Password mismatch');
       const response = res.response({
         status: 'fail',
         message: 'Invalid email or password',
@@ -64,7 +72,7 @@ const LoginUser = async (req, res) => {
     console.error(error.message);
     const response = res.response({
       status: 'fail',
-      message: 'An error occurred while logging in',
+      message: 'Server Error',
     });
     response.code(500);
     return response;

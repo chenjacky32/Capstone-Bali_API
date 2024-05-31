@@ -1,5 +1,5 @@
-import { connection, query } from '../../services/connDB.js';
-import validateToken from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
+import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const GetDestById = async (req, res) => {
   const { id } = req.params;
@@ -27,9 +27,11 @@ const GetDestById = async (req, res) => {
   }
 
   try {
-    const queryData = `SELECT * FROM destination WHERE dest_id = ?`;
-    const userData = await query(queryData, [id]);
-
+    const userData = await prisma.destination.findMany({
+      where: {
+        dest_id: id,
+      },
+    });
     if (userData.length > 0) {
       const responseData = res.response({
         status: 'success',

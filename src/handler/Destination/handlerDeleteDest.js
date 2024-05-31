@@ -1,5 +1,5 @@
-import { query } from '../../services/connDB.js';
-import validateToken from '../../middleware/Jwt-Token.js';
+import { validateToken } from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
 
 const DeleteDestById = async (req, res) => {
   const { id } = req.params;
@@ -27,12 +27,19 @@ const DeleteDestById = async (req, res) => {
   }
 
   try {
-    const findData = `SELECT * FROM destination WHERE dest_id = ?`;
-    const userData = await query(findData, [id]);
-
+    const userData = await prisma.destination.findMany({
+      where: {
+        dest_id: id,
+      },
+    });
     if (userData.length > 0 && userData[0].dest_id === id) {
-      const QueryDelete = `DELETE FROM destination WHERE dest_id = ?`;
-      await query(QueryDelete, [id]);
+      // const QueryDelete = `DELETE FROM destination WHERE dest_id = ?`;
+      // await query(QueryDelete, [id]);
+      await prisma.destination.deleteMany({
+        where: {
+          dest_id: id,
+        },
+      });
       const responseData = res.response({
         status: 'success',
         message: 'Destination has been deleted',

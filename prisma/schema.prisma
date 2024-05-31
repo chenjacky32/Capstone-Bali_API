@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model destination {
+  dest_id       String          @id @db.VarChar(10)
+  name_dest     String          @db.VarChar(50)
+  description   String          @db.Text
+  img           String          @db.Text
+  location      String          @db.VarChar(50)
+  detail_rating detail_rating[]
+}
+
+model detail_rating {
+  rating_id   Int         @id
+  user_id     String      @db.VarChar(10)
+  dest_id     String      @db.VarChar(10)
+  rating      Int
+  bookmarks   Boolean
+  users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "detail_rating_ibfk_1")
+  destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "detail_rating_ibfk_2")
+
+  @@index([dest_id], map: "dest_id")
+  @@index([user_id], map: "user_id")
+}
+
+model users {
+  user_id       String          @id @db.VarChar(10)
+  name          String          @db.VarChar(50)
+  email         String          @db.VarChar(50)
+  password      String          @db.VarChar(64)
+  detail_rating detail_rating[]
+}
+
+

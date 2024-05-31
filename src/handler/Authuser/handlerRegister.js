@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { connection, query } from '../../services/connDB.js';
+import prisma from '../../db/prisma.js';
 
 const RegisterUser = async (req, res) => {
   const { customAlphabet } = await import('nanoid');
@@ -11,8 +11,11 @@ const RegisterUser = async (req, res) => {
   const user_id = generateId();
 
   try {
-    const QueryUserEmail = `SELECT * FROM users WHERE email = ?`;
-    const UserEmail = await query(QueryUserEmail, [email]);
+    const UserEmail = await prisma.users.findMany({
+      where: {
+        email,
+      },
+    });
 
     if (UserEmail.length > 0) {
       const responseData = res.response({
@@ -36,8 +39,15 @@ const RegisterUser = async (req, res) => {
       .createHash('sha256')
       .update(password)
       .digest('hex');
-    const queryData = `INSERT INTO users (user_id,name,email,password) VALUES (?,?,?,?)`;
-    await query(queryData, [user_id, name, email, password]);
+
+    await prisma.users.create({
+      data: {
+        user_id,
+        name,
+        email,
+        password,
+      },
+    });
 
     const responseData = res.response({
       status: 'success',
