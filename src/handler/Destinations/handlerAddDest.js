@@ -3,12 +3,12 @@ import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const AddDestination = async (req, res) => {
   const { customAlphabet } = await import('nanoid');
-  const { name_dest, description, img, location } = req.payload;
+  const { name, description, img, location } = req.payload;
   const generateId = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     10,
   );
-  const dest_id = generateId();
+  const id = generateId();
   const { authorization } = req.headers;
 
   if (!authorization) {
@@ -19,7 +19,7 @@ const AddDestination = async (req, res) => {
     responseData.code(401);
     return responseData;
   }
-  if (!name_dest || !description || !img || !location) {
+  if (!name || !description || !img || !location) {
     const response = res.response({
       status: 'fail',
       message: 'Please fill all the fields',
@@ -41,7 +41,7 @@ const AddDestination = async (req, res) => {
   try {
     const Data_Dest = await prisma.destination.findMany({
       where: {
-        name_dest,
+        name_dest: name,
       },
     });
     if (Data_Dest.length > 0) {
@@ -55,8 +55,8 @@ const AddDestination = async (req, res) => {
 
     await prisma.destination.create({
       data: {
-        dest_id,
-        name_dest,
+        dest_id: id,
+        name_dest: name,
         description,
         img,
         location,
@@ -65,10 +65,10 @@ const AddDestination = async (req, res) => {
 
     const response = res.response({
       status: 'success',
-      message: 'Success Created Destination',
+      message: 'Destination Created successfully',
       data: {
-        dest_id,
-        name_dest,
+        id,
+        name,
         description,
         img,
         location,
@@ -80,7 +80,7 @@ const AddDestination = async (req, res) => {
     console.error(error.message);
     const response = res.response({
       status: 'fail',
-      message: 'Fail Created Destination',
+      message: 'internal server error',
     });
     response.code(500);
     return response;

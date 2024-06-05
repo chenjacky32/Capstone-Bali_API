@@ -1,7 +1,7 @@
-import prisma from '../../db/prisma.js';
 import { validateToken } from '../../middleware/Jwt-Token.js';
+import prisma from '../../db/prisma.js';
 
-const GetDestById = async (req, res) => {
+const DeleteDestById = async (req, res) => {
   const { id } = req.params;
   const { authorization } = req.headers;
 
@@ -32,21 +32,22 @@ const GetDestById = async (req, res) => {
         dest_id: id,
       },
     });
-    if (userData.length > 0) {
+    if (userData.length > 0 && userData[0].dest_id === id) {
+      await prisma.destination.deleteMany({
+        where: {
+          dest_id: id,
+        },
+      });
       const responseData = res.response({
         status: 'success',
+        message: 'Destination has been deleted',
         data: {
-          dest_id: userData[0].dest_id,
-          name_dest: userData[0].name_dest,
-          description: userData[0].description,
-          img: userData[0].img,
-          location: userData[0].location,
+          id: userData[0].dest_id,
         },
       });
       responseData.code(200);
       return responseData;
     }
-
     const responseData = res.response({
       status: 'fail',
       message: 'Destination not found',
@@ -55,13 +56,13 @@ const GetDestById = async (req, res) => {
     return responseData;
   } catch (error) {
     console.error(error.message);
-    const responseData = res.response({
+    const response = res.response({
       status: 'fail',
       message: 'internal server error',
     });
-    responseData.code(500);
-    return responseData;
+    response.code(500);
+    return response;
   }
 };
 
-export default GetDestById;
+export default DeleteDestById;

@@ -14,7 +14,6 @@ const LoginUser = async (req, res) => {
     return response;
   }
   if (!password) {
-    console.log('password kosong');
     const response = res.response({
       status: 'fail',
       message: 'Password is not allowed to be Empty',
@@ -45,10 +44,7 @@ const LoginUser = async (req, res) => {
       .update(password)
       .digest('hex');
 
-    console.log(hashedPassword);
-
     if (hashedPassword !== user.password) {
-      console.log('Password mismatch');
       const response = res.response({
         status: 'fail',
         message: 'Invalid email or password',
@@ -72,7 +68,7 @@ const LoginUser = async (req, res) => {
     console.error(error.message);
     const response = res.response({
       status: 'fail',
-      message: 'Server Error',
+      message: 'internal server error',
     });
     response.code(500);
     return response;

@@ -8,7 +8,7 @@ const RegisterUser = async (req, res) => {
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     10,
   );
-  const user_id = generateId();
+  const id = generateId();
 
   try {
     const UserEmail = await prisma.users.findMany({
@@ -42,7 +42,7 @@ const RegisterUser = async (req, res) => {
 
     await prisma.users.create({
       data: {
-        user_id,
+        user_id: id,
         name,
         email,
         password,
@@ -53,7 +53,7 @@ const RegisterUser = async (req, res) => {
       status: 'success',
       message: 'User Created',
       data: {
-        user_id,
+        id,
         name,
         email,
         password: hashedPassword,
@@ -65,7 +65,7 @@ const RegisterUser = async (req, res) => {
     console.log(error.message);
     const responseData = res.response({
       status: 'fail',
-      message: 'Fail Created User',
+      message: 'internal server error',
     });
     responseData.code(500);
     return responseData;

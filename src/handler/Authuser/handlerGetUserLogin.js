@@ -31,7 +31,6 @@ const GetUserLogin = async (req, res) => {
         user_id: decoded.userId,
       },
     });
-
     if (userData.length === 0) {
       const responseData = res.response({
         status: 'fail',
