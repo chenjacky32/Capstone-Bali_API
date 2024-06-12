@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable consistent-return */
 import prisma from '../../db/prisma.js';
 import { validateToken } from '../../middleware/Jwt-Token.js';
 
@@ -60,7 +58,7 @@ const UnBookmark = async (req, res) => {
         destination: true,
       },
     });
-    if (!existingBookmark) {
+    if (existingBookmark.length === 0) {
       const responseData = res.response({
         status: 'fail',
         message: 'Bookmark not found',
@@ -68,34 +66,33 @@ const UnBookmark = async (req, res) => {
       responseData.code(404);
       return responseData;
     }
-    if (existingBookmark[0].isBookmark === true) {
-      const updateBookmark = await prisma.bookmark_detail.update({
-        where: {
-          id: existingBookmark[0].id,
-        },
-        data: {
-          isBookmark: false,
-        },
-        include: {
-          users: true,
-          destination: true,
-        },
-      });
-      const responseData = res.response({
-        status: 'success',
-        message: 'Destinations unbookmarked',
-        data: {
-          id: updateBookmark.dest_id,
-          user_id: updateBookmark.user_id,
-          name: updateBookmark.users.name,
-          dest_id: updateBookmark.dest_id,
-          dest_name: updateBookmark.destination.name_dest,
-          isBookmark: updateBookmark.isBookmark,
-        },
-      });
-      responseData.code(200);
-      return responseData;
-    }
+
+    const updateBookmark = await prisma.bookmark_detail.update({
+      where: {
+        id: existingBookmark[0].id,
+      },
+      data: {
+        isBookmark: false,
+      },
+      include: {
+        users: true,
+        destination: true,
+      },
+    });
+    const responseData = res.response({
+      status: 'success',
+      message: 'Destinations unbookmarked',
+      data: {
+        id: updateBookmark.dest_id,
+        user_id: updateBookmark.user_id,
+        name: updateBookmark.users.name,
+        dest_id: updateBookmark.dest_id,
+        dest_name: updateBookmark.destination.name_dest,
+        isBookmark: updateBookmark.isBookmark,
+      },
+    });
+    responseData.code(200);
+    return responseData;
   } catch (error) {
     console.error(error.message);
     const responseData = res.response({

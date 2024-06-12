@@ -21,5 +21,6 @@ module.exports = {
     'no-console': 'off',
     'import/no-extraneous-dependencies': 'off',
     'import/no-mutable-exports': 'off',
+    'consistent-return': 'off',
   },
 };

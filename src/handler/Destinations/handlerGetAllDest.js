@@ -1,5 +1,4 @@
 import prisma from '../../db/prisma.js';
-import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const GetAllDest = async (req, res) => {
   try {
@@ -12,10 +11,10 @@ const GetAllDest = async (req, res) => {
       location: dest.location,
     }));
     const responseData = res.response({
-      status: 'Success',
+      status: 'success',
       message: 'Get All Destination success',
       data: {
-        Destination,
+        destinations: Destination,
       },
     });
     responseData.code(200);

@@ -37,8 +37,6 @@ const GetDestBookmark = async (req, res) => {
       },
     });
 
-    // console.log(bookmarks);
-
     const bookmarkData = bookmarks.map((bookmark) => ({
       id: bookmark.id,
       user_id: bookmark.user_id,
@@ -47,8 +45,6 @@ const GetDestBookmark = async (req, res) => {
       dest_name: bookmark.destination.name_dest,
       isBookmark: bookmark.isBookmark,
     }));
-
-    console.log(bookmarkData);
 
     const responseData = res.response({
       status: 'success',

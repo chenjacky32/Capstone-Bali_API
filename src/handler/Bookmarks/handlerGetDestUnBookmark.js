@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import prisma from '../../db/prisma.js';
 import { validateToken } from '../../middleware/Jwt-Token.js';
 
@@ -38,8 +37,6 @@ const GetDestUnBookmarked = async (req, res) => {
       },
     });
 
-    // console.log(bookmarks);
-
     const bookmarkData = bookmarks.map((bookmark) => ({
       id: bookmark.id,
       user_id: bookmark.user_id,
@@ -48,7 +45,6 @@ const GetDestUnBookmarked = async (req, res) => {
       dest_name: bookmark.destination.name_dest,
       isBookmark: bookmark.isBookmark,
     }));
-    // console.log(bookmarkData);
     const responseData = res.response({
       status: 'success',
       message: 'Destinations retrieved',

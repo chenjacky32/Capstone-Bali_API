@@ -2,15 +2,14 @@ import prisma from '../../db/prisma.js';
 import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const AddBookmark = async (req, res) => {
-  // const { isBookmark } = req.payload;
   const { customAlphabet } = await import('nanoid');
   const { dest_id } = req.params;
   const generateId = customAlphabet(
     '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     10,
   );
-  const id = generateId();
   const { authorization } = req.headers;
+  const id = generateId();
   if (!authorization) {
     const responseData = res.response({
       status: 'fail',
@@ -63,7 +62,6 @@ const AddBookmark = async (req, res) => {
         destination: true,
       },
     });
-    console.log(`existingBookmark ${existingBookmark}`);
 
     if (existingBookmark.length > 0) {
       const updatedBookmark = await prisma.bookmark_detail.update({
@@ -78,7 +76,6 @@ const AddBookmark = async (req, res) => {
           destination: true,
         },
       });
-      console.log(`updatedBookmark ${updatedBookmark}`);
 
       const responseData = res.response({
         status: 'success',
@@ -107,7 +104,7 @@ const AddBookmark = async (req, res) => {
         destination: true,
       },
     });
-    console.log(`newBookmark ${newBookmark}`);
+
     const responseData = res.response({
       status: 'success',
       message: 'Destinations Bookmarked',

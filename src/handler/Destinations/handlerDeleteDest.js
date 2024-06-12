@@ -1,5 +1,5 @@
-import { validateToken } from '../../middleware/Jwt-Token.js';
 import prisma from '../../db/prisma.js';
+import { validateToken } from '../../middleware/Jwt-Token.js';
 
 const DeleteDestById = async (req, res) => {
   const { id } = req.params;
