@@ -5,6 +5,10 @@ import AddDestination from '../handler/Destinations/handlerAddDest.js';
 import GetDestById from '../handler/Destinations/handlerGetDestById.js';
 import DeleteDestById from '../handler/Destinations/handlerDeleteDest.js';
 import GetAllDest from '../handler/Destinations/handlerGetAllDest.js';
+import AddBookmark from '../handler/Bookmarks/handlerAddBookmark.js';
+import GetDestBookmark from '../handler/Bookmarks/handlerGetDestBookmark.js';
+import GetDestUnBookmarked from '../handler/Bookmarks/handlerGetDestUnBookmark.js';
+import UnBookmark from '../handler/Bookmarks/handlerUnBookmark.js';
 
 const Routes = [
   {
@@ -41,6 +45,26 @@ const Routes = [
     method: 'GET',
     path: '/destinations',
     handler: GetAllDest,
+  },
+  {
+    method: 'POST',
+    path: '/destinations/{dest_id}/bookmarks',
+    handler: AddBookmark,
+  },
+  {
+    method: 'POST',
+    path: '/destinations/{dest_id}/unbookmarked',
+    handler: UnBookmark,
+  },
+  {
+    method: 'GET',
+    path: '/destinations/bookmarks',
+    handler: GetDestBookmark,
+  },
+  {
+    method: 'GET',
+    path: '/destinations/unbookmarked',
+    handler: GetDestUnBookmarked,
   },
 ];
 

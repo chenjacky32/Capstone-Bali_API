@@ -13,20 +13,8 @@ model destination {
   description   String          @db.Text
   img           String          @db.Text
   location      String          @db.VarChar(50)
-  detail_rating detail_rating[]
-}
-
-model detail_rating {
-  rating_id   Int         @id
-  user_id     String      @db.VarChar(10)
-  dest_id     String      @db.VarChar(10)
-  rating      Int
-  bookmarks   Boolean
-  users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "detail_rating_ibfk_1")
-  destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "detail_rating_ibfk_2")
-
-  @@index([dest_id], map: "dest_id")
-  @@index([user_id], map: "user_id")
+  rating rating[]
+  bookmark_detail bookmark_detail[]
 }
 
 model users {
@@ -34,7 +22,32 @@ model users {
   name          String          @db.VarChar(50)
   email         String          @db.VarChar(50)
   password      String          @db.VarChar(64)
-  detail_rating detail_rating[]
+  rating rating[]
+  bookmark_detail bookmark_detail[]
+}
+
+model rating {
+  rating_id   String      @id @db.VarChar(10)
+  rating      Int
+  user_id     String      @db.VarChar(10)
+  dest_id     String      @db.VarChar(10)
+  users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "rating_ibfk_1")
+  destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "rating_ibfk_2")
+
+  @@index([dest_id], map: "dest_id")
+  @@index([user_id], map: "user_id")
+}
+
+model bookmark_detail {
+  id          String      @id @db.VarChar(10)
+  isBookmark  Boolean
+  user_id     String      @db.VarChar(10)
+  dest_id     String      @db.VarChar(10)
+  users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "bookmark_detail_ibfk_1")
+  destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "bookmark_detail_ibfk_2")
+
+  @@index([dest_id], map: "dest_id")
+  @@index([user_id], map: "user_id")
 }
 
 
