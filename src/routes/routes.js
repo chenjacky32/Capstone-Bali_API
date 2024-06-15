@@ -9,6 +9,7 @@ import AddBookmark from '../handler/Bookmarks/handlerAddBookmark.js';
 import GetDestBookmark from '../handler/Bookmarks/handlerGetDestBookmark.js';
 import GetDestUnBookmarked from '../handler/Bookmarks/handlerGetDestUnBookmark.js';
 import UnBookmark from '../handler/Bookmarks/handlerUnBookmark.js';
+import AddRatings from '../handler/Ratings/AddRatings.js';
 
 const Routes = [
   {
@@ -65,6 +66,11 @@ const Routes = [
     method: 'GET',
     path: '/destinations/unbookmarked',
     handler: GetDestUnBookmarked,
+  },
+  {
+    method: 'POST',
+    path: '/destinations/{dest_id}/ratings',
+    handler: AddRatings,
   },
 ];
 
