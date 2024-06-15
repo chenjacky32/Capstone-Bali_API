@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model destination {
@@ -21,7 +22,7 @@ model users {
   user_id       String          @id @db.VarChar(10)
   name          String          @db.VarChar(50)
   email         String          @db.VarChar(50)
-  password      String          @db.VarChar(64)
+  password      String          @db.VarChar(300)
   rating rating[]
   bookmark_detail bookmark_detail[]
 }
@@ -34,8 +35,8 @@ model rating {
   users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "rating_ibfk_1")
   destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "rating_ibfk_2")
 
-  @@index([dest_id], map: "dest_id")
-  @@index([user_id], map: "user_id")
+  @@index([dest_id], map: "rating_dest_id")
+  @@index([user_id], map: "rating_user_id")
 }
 
 model bookmark_detail {
@@ -46,8 +47,8 @@ model bookmark_detail {
   users       users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "bookmark_detail_ibfk_1")
   destination destination @relation(fields: [dest_id], references: [dest_id], onDelete: Cascade, map: "bookmark_detail_ibfk_2")
 
-  @@index([dest_id], map: "dest_id")
-  @@index([user_id], map: "user_id")
+  @@index([dest_id], map: "bookmark_detail_dest_id")
+  @@index([user_id], map: "bookmark_user_id")
 }
 
 
