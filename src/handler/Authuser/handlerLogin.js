@@ -29,7 +29,6 @@ const LoginUser = async (req, res) => {
     });
 
     if (userData.length === 0) {
-      console.log('user tidak ada');
       const response = res.response({
         status: 'fail',
         message: 'Invalid email or password',
@@ -44,7 +43,8 @@ const LoginUser = async (req, res) => {
       .update(password)
       .digest('hex');
 
-    if (hashedPassword !== user.password) {
+    const userPassword = user.password.replace(/^\\x/, '');
+    if (hashedPassword !== userPassword) {
       const response = res.response({
         status: 'fail',
         message: 'Invalid email or password',
