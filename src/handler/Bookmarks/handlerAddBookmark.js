@@ -110,11 +110,11 @@ const AddBookmark = async (req, res) => {
       message: 'Destinations Bookmarked',
       data: {
         id: newBookmark.id,
-        isBookmark: newBookmark.isBookmark,
         user_id: newBookmark.user_id,
         name: newBookmark.users.name,
         dest_id: newBookmark.dest_id,
-        name_dest: newBookmark.destination.name_dest,
+        dest_name: newBookmark.destination.name_dest,
+        isBookmark: newBookmark.isBookmark,
       },
     });
     responseData.code(200);
