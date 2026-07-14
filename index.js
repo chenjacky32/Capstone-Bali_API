@@ -1,6 +1,6 @@
 import Hapi from '@hapi/hapi';
 import Routes from './src/routes/routes.js';
-import prisma from './src/db/prisma.js';
+import prisma from './src/config/DatabaseConfig.js';
 
 const init = async () => {
   const server = Hapi.server({

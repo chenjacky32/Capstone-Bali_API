@@ -1,0 +1,88 @@
+import crypto from 'crypto';
+import { customAlphabet } from 'nanoid';
+import userModel from '../models/UserModel.js';
+import { generateToken } from '../utils/JwtToken.js';
+
+class UserService {
+  constructor() {
+    this.generateId = customAlphabet(
+      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      10,
+    );
+  }
+
+  async register({ name, email, password }) {
+    if (!name || !email || !password) {
+      throw new Error('Please fill all the fields');
+    }
+
+    const UserEmail = await userModel.findByEmail(email);
+    if (UserEmail.length > 0) {
+      throw new Error('Email Already Use');
+    }
+
+    const id = this.generateId();
+    const hashedPassword = crypto
+      .createHash('sha256')
+      .update(password)
+      .digest('hex');
+
+    await userModel.create({
+      user_id: id,
+      name,
+      email,
+      password,
+    });
+
+    return {
+      id,
+      name,
+      email,
+      password: hashedPassword,
+    };
+  }
+
+  async login({ email, password }) {
+    if (!email) {
+      throw new Error('Email is not allowed to be Empty');
+    }
+    if (!password) {
+      throw new Error('Password is not allowed to be Empty');
+    }
+
+    const userData = await userModel.findByEmail(email);
+    if (userData.length === 0) {
+      throw new Error('Invalid email or password');
+    }
+
+    const user = userData[0];
+    const hashedPassword = crypto
+      .createHash('sha256')
+      .update(password)
+      .digest('hex');
+
+    const userPassword = user.password.replace(/^\\x/, '');
+    if (hashedPassword !== userPassword) {
+      throw new Error('Invalid email or password');
+    }
+
+    const accessToken = generateToken(user.user_id);
+    return { accessToken };
+  }
+
+  async getProfile(userId) {
+    const userData = await userModel.findById(userId);
+    if (userData.length === 0) {
+      throw new Error('User not found');
+    }
+
+    const user = userData[0];
+    return {
+      id: user.user_id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+}
+
+export default new UserService();
