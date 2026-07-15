@@ -10,9 +10,8 @@ Tema : Pertumbuhan Ekonomi dan Daya Saing Usaha
 
 Program : React & Back-End
 
-Anggota Kelompok : 
-+ E242071 - Muhammad Fadhil Jamaluddin 
-+ E242079 - Jacky Chen
-+ E242073 - Arief Taufik Rahman 
+Anggota Kelompok :
 
-
+- E242071 - Muhammad Fadhil Jamaluddin
+- E242079 - Jacky Chen
+- E242073 - Arief Taufik Rahman
