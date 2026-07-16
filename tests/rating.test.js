@@ -4,6 +4,8 @@ import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
 import userService from '../src/services/UserService.js';
+import destinationService from '../src/services/DestinationService.js';
+import ratingService from '../src/services/RatingService.js';
 
 describe('Rating API Tests', () => {
   let server;
@@ -18,7 +20,6 @@ describe('Rating API Tests', () => {
   beforeEach(async () => {
     await cleanDb();
 
-    destId = generateId();
     const email = `user_${generateId()}@example.com`;
 
     // Create user and log in to get a token for authenticated requests
@@ -40,15 +41,13 @@ describe('Rating API Tests', () => {
     token = JSON.parse(loginResponse.payload).data.accessToken;
 
     // Create a destination
-    await prisma.destination.create({
-      data: {
-        dest_id: destId,
-        name_dest: 'Kuta Beach',
-        description: 'A crowded beach with nice sunset.',
-        img: 'https://example.com/kuta.jpg',
-        location: 'Badung',
-      },
+    const dest = await destinationService.addDestination({
+      name: 'Kuta Beach',
+      description: 'A crowded beach with nice sunset.',
+      img: 'https://example.com/kuta.jpg',
+      location: 'Badung',
     });
+    destId = dest.id;
   });
 
   afterAll(async () => {
@@ -107,9 +106,7 @@ describe('Rating API Tests', () => {
       expect(body.data.rating).toBe(3);
 
       // Verify in DB
-      const dbRating = await prisma.rating.findFirst({
-        where: { user_id: userId, dest_id: destId },
-      });
+      const dbRating = await ratingService.getRating(userId, destId);
       expect(dbRating.rating).toBe(3);
     });
 
