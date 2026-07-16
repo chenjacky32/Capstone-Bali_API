@@ -1,7 +1,6 @@
-import crypto from 'crypto';
 import { customAlphabet } from 'nanoid';
 import userModel from '../models/UserModel.js';
-import { generateToken } from '../utils/JwtToken.js';
+import { generateToken, hashPassword } from '../utils/JwtToken.js';
 
 class UserService {
   constructor() {
@@ -22,16 +21,13 @@ class UserService {
     }
 
     const id = this.generateId();
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
+    const hashedPassword = hashPassword(password);
 
     await userModel.create({
       user_id: id,
       name,
       email,
-      password,
+      password: hashedPassword,
     });
 
     return {
@@ -56,10 +52,7 @@ class UserService {
     }
 
     const user = userData[0];
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
+    const hashedPassword = hashPassword(password);
 
     const userPassword = user.password.replace(/^\\x/, '');
     if (hashedPassword !== userPassword) {
