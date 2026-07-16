@@ -44,7 +44,7 @@ class DestinationService {
       throw new Error('Destination not found');
     }
 
-    return await ratingService.calculate(dest);
+    return await ratingService.calculateRating(dest);
   }
 
   async deleteDestinationById(id) {
@@ -61,7 +61,7 @@ class DestinationService {
 
   async getAllDestinations() {
     const destinations = await destinationModel.findAll();
-    return await Promise.all(destinations.map(ratingService.calculate));
+    return await Promise.all(destinations.map(ratingService.calculateRating));
   }
 }
 

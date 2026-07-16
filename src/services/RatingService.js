@@ -59,7 +59,7 @@ class RatingService {
     };
   }
 
-  calculate = async (dest) => {
+  calculateRating = async (dest) => {
     try {
       const ratings = await ratingModel.findManyByDestId(dest.dest_id);
       const totalRating = ratings.length;
