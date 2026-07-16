@@ -1,6 +1,6 @@
 import prisma from '../config/DatabaseConfig.js';
 
-class AvgRatingMiddleware {
+class AvgRatingHelper {
   calculate = async (dest) => {
     try {
       const ratings = await prisma.rating.findMany({
@@ -34,4 +34,4 @@ class AvgRatingMiddleware {
   };
 }
 
-export default new AvgRatingMiddleware();
+export default new AvgRatingHelper();
