@@ -6,18 +6,18 @@ class AuthMiddleware {
     const { authorization } = req.headers;
 
     if (!authorization) {
-      return responseHelper.error(res, 401, 'missing authentication token');
+      return responseHelper
+        .error(res, 401, 'missing authentication token')
+        .takeover();
     }
 
     const token = authorization.split(' ')[1];
     const decoded = validateToken(token);
 
     if (!decoded) {
-      return responseHelper.error(
-        res,
-        401,
-        'invalid authentication token or token Expired',
-      );
+      return responseHelper
+        .error(res, 401, 'invalid authentication token or token Expired')
+        .takeover();
     }
 
     return decoded;

@@ -52,6 +52,11 @@ class RatingService {
     };
   }
 
+  async getRating(userId, destId) {
+    const existingRating = await ratingModel.findMany(userId, destId);
+    return existingRating.length > 0 ? existingRating[0] : null;
+  }
+
   calculateRating = async (dest) => {
     try {
       const ratings = await ratingModel.findManyByDestId(dest.dest_id);
@@ -65,6 +70,10 @@ class RatingService {
       return responseHelper.AvgRatingResponse(dest, 0);
     }
   };
+
+  async cleanRatings() {
+    await ratingModel.deleteAll();
+  }
 }
 
 export default new RatingService();

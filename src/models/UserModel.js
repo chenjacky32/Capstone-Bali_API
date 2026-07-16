@@ -18,6 +18,10 @@ class UserModel {
       data,
     });
   }
+
+  async deleteAll() {
+    return await prisma.users.deleteMany({});
+  }
 }
 
 export default new UserModel();

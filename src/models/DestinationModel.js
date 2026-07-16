@@ -42,6 +42,10 @@ class DestinationModel {
   async findAll() {
     return await prisma.destination.findMany();
   }
+
+  async deleteAll() {
+    return await prisma.destination.deleteMany({});
+  }
 }
 
 export default new DestinationModel();
