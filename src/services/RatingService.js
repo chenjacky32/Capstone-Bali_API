@@ -1,16 +1,9 @@
-import { customAlphabet } from 'nanoid';
 import ratingModel from '../models/RatingModel.js';
 import destinationModel from '../models/DestinationModel.js';
 import responseHelper from '../utils/ResponseHelper.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class RatingService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async addRating(userId, destId, rating) {
     if (!destId) {
       throw new Error('Destinations ID is required');
@@ -40,7 +33,7 @@ class RatingService {
         rating,
       });
     } else {
-      const id = this.generateId();
+      const id = generateId();
       ratingObj = await ratingModel.create({
         rating_id: id,
         user_id: userId,

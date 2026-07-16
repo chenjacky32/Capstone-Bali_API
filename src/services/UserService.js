@@ -1,15 +1,8 @@
-import { customAlphabet } from 'nanoid';
 import userModel from '../models/UserModel.js';
 import { generateToken, hashPassword } from '../utils/JwtToken.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class UserService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async register({ name, email, password }) {
     if (!name || !email || !password) {
       throw new Error('Please fill all the fields');
@@ -20,7 +13,7 @@ class UserService {
       throw new Error('Email Already Use');
     }
 
-    const id = this.generateId();
+    const id = generateId();
     const hashedPassword = hashPassword(password);
 
     await userModel.create({

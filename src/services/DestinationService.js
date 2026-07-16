@@ -1,15 +1,8 @@
-import { customAlphabet } from 'nanoid';
 import destinationModel from '../models/DestinationModel.js';
 import ratingService from './RatingService.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class DestinationService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async addDestination({ name, description, img, location }) {
     if (!name || !description || !img || !location) {
       throw new Error('Please fill all the fields');
@@ -20,7 +13,7 @@ class DestinationService {
       throw new Error('Destination Already Exist');
     }
 
-    const id = this.generateId();
+    const id = generateId();
     await destinationModel.create({
       dest_id: id,
       name_dest: name,
