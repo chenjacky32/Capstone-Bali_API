@@ -99,6 +99,11 @@ class BookmarkService {
     }));
   }
 
+  async getBookmark(userId, destId) {
+    const existingBookmark = await bookmarkModel.findMany(userId, destId);
+    return existingBookmark.length > 0 ? existingBookmark[0] : null;
+  }
+
   async cleanBookmarks() {
     await bookmarkModel.deleteAll();
   }

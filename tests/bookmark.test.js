@@ -4,6 +4,8 @@ import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
 import userService from '../src/services/UserService.js';
+import destinationService from '../src/services/DestinationService.js';
+import bookmarkService from '../src/services/BookmarkService.js';
 
 describe('Bookmark API Tests', () => {
   let server;
@@ -18,7 +20,6 @@ describe('Bookmark API Tests', () => {
   beforeEach(async () => {
     await cleanDb();
 
-    destId = generateId();
     const email = `user_${generateId()}@example.com`;
 
     // Create user and log in to get a token for authenticated requests
@@ -40,15 +41,13 @@ describe('Bookmark API Tests', () => {
     token = JSON.parse(loginResponse.payload).data.accessToken;
 
     // Create a destination
-    await prisma.destination.create({
-      data: {
-        dest_id: destId,
-        name_dest: 'Sanur Beach',
-        description: 'A quiet beach with beautiful sunrise.',
-        img: 'https://example.com/sanur.jpg',
-        location: 'Denpasar',
-      },
+    const dest = await destinationService.addDestination({
+      name: 'Sanur Beach',
+      description: 'A quiet beach with beautiful sunrise.',
+      img: 'https://example.com/sanur.jpg',
+      location: 'Denpasar',
     });
+    destId = dest.id;
   });
 
   afterAll(async () => {
@@ -97,9 +96,7 @@ describe('Bookmark API Tests', () => {
       const body = JSON.parse(response.payload);
       expect(body.data.isBookmark).toBe(true);
 
-      const dbBookmark = await prisma.bookmark_detail.findFirst({
-        where: { user_id: userId, dest_id: destId },
-      });
+      const dbBookmark = await bookmarkService.getBookmark(userId, destId);
       expect(dbBookmark.isBookmark).toBe(true);
     });
 
