@@ -277,3 +277,143 @@ Bagi Junior Programmer atau AI yang menjalankan tugas ini, wajib memverifikasi h
   - Service tidak mengandung `req`/`res`.
   - Controller tidak mengandung sintaks Prisma/query SQL secara langsung.
 - [ ] **PENGETESAN ENDPOINT**: Coba jalankan server (`npm run dev` atau `node index.js`) dan pastikan seluruh API dapat diakses normal tanpa error _syntax_ atau _module not found_.
+
+---
+
+## 🧪 5. Perencanaan Unit Test (Untuk Junior Programmer / AI Model)
+
+Buat unit test untuk seluruh API Route yang tersedia menggunakan **Jest**.
+
+- Lokasi file test: Folder `tests/`
+- Framework: **Jest**
+- **Setiap test scenario wajib menghapus data terkait terlebih dahulu** sebelum dijalankan, agar setiap test bersifat konsisten dan idempoten.
+- Siapkan environment `.env.test` khusus untuk testing (database terpisah atau schema terpisah).
+- Jalankan server Hapi dalam mode test sebelum suite dimulai, dan matikan setelah semua test selesai.
+
+### Struktur Folder Test
+
+```
+tests/
+├── user.test.js
+├── destination.test.js
+├── rating.test.js
+└── bookmark.test.js
+```
+
+---
+
+### Test: User Routes (`tests/user.test.js`)
+
+**`POST /register`**
+
+| Skenario | Expected |
+|---|---|
+| Register berhasil dengan data lengkap | Status `201`, respons berisi `id`, `name`, `email` |
+| Register gagal jika `email` sudah digunakan | Status `400` |
+| Register gagal jika ada field yang kosong | Status `400` |
+
+**`POST /login`**
+
+| Skenario | Expected |
+|---|---|
+| Login berhasil dengan kredensial valid | Status `200`, respons berisi `accessToken` |
+| Login gagal dengan password salah | Status `401` |
+| Login gagal dengan email yang tidak terdaftar | Status `401` |
+| Login gagal jika `email` atau `password` kosong | Status `400` |
+
+**`GET /users/me`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil mendapatkan profil dengan token valid | Status `200`, respons berisi `id`, `name`, `email` |
+| Gagal tanpa token | Status `401` |
+| Gagal dengan token tidak valid atau kadaluarsa | Status `401` |
+
+---
+
+### Test: Destination Routes (`tests/destination.test.js`)
+
+**`POST /destinations`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil menambahkan destinasi dengan data lengkap | Status `201`, respons berisi `id`, `name`, `location` |
+| Gagal jika ada field yang kosong | Status `400` |
+| Gagal jika nama destinasi sudah ada (duplikat) | Status `400` |
+| Gagal tanpa token | Status `401` |
+
+**`GET /destinations`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil mendapatkan semua destinasi | Status `200`, respons berupa array |
+| Setiap item berisi field `avgRating` | Status `200` |
+
+**`GET /destinations/{id}`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil mendapatkan detail destinasi berdasarkan ID | Status `200`, respons berisi `avgRating` |
+| Gagal jika ID tidak ditemukan | Status `404` |
+
+**`DELETE /destinations/{id}`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil menghapus destinasi | Status `200` |
+| Gagal jika ID tidak ditemukan | Status `404` |
+| Gagal tanpa token | Status `401` |
+
+---
+
+### Test: Rating Routes (`tests/rating.test.js`)
+
+**`POST /destinations/{dest_id}/ratings`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil memberi rating (1–5) pada destinasi | Status `200`, respons berisi `id`, `rating`, `dest_id` |
+| Memberi rating lagi pada destinasi yang sama akan **mengupdate** rating sebelumnya | Status `200`, nilai `rating` berubah |
+| Gagal jika `rating` di luar range 1–5 | Status `400` |
+| Gagal jika `rating` bukan bertipe number | Status `400` |
+| Gagal jika `dest_id` tidak ditemukan | Status `404` |
+| Gagal tanpa token | Status `401` |
+| Setelah diberi rating, `avgRating` destinasi berubah secara akurat | `GET /destinations/{id}` mengembalikan nilai `avgRating` yang benar |
+
+---
+
+### Test: Bookmark Routes (`tests/bookmark.test.js`)
+
+**`POST /destinations/{dest_id}/bookmarks`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil melakukan bookmark destinasi | Status `200`, respons berisi `isBookmark: true` |
+| Melakukan bookmark pada destinasi yang sudah dibookmark (idempoten) | Status `200`, `isBookmark` tetap `true` |
+| Gagal jika `dest_id` tidak ditemukan | Status `404` |
+| Gagal tanpa token | Status `401` |
+
+**`POST /destinations/{dest_id}/unbookmarked`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil menghapus bookmark destinasi | Status `200`, respons berisi `isBookmark: false` |
+| Gagal jika `dest_id` tidak ditemukan | Status `404` |
+| Gagal tanpa token | Status `401` |
+
+**`GET /destinations/bookmarks`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil mendapatkan daftar destinasi yang di-bookmark | Status `200`, array dengan `isBookmark: true` |
+| Respons kosong jika tidak ada bookmark aktif | Status `200`, array kosong |
+| Gagal tanpa token | Status `401` |
+
+**`GET /destinations/unbookmarked`**
+
+| Skenario | Expected |
+|---|---|
+| Berhasil mendapatkan daftar destinasi yang tidak di-bookmark | Status `200`, array dengan `isBookmark: false` |
+| Respons kosong jika tidak ada data unbookmark | Status `200`, array kosong |
+| Gagal tanpa token | Status `401` |
+
