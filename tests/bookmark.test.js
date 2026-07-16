@@ -3,6 +3,7 @@ import { cleanDb } from './helpers/db.js';
 import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
+import userService from '../src/services/UserService.js';
 
 describe('Bookmark API Tests', () => {
   let server;
@@ -17,19 +18,16 @@ describe('Bookmark API Tests', () => {
   beforeEach(async () => {
     await cleanDb();
 
-    userId = generateId();
     destId = generateId();
     const email = `user_${generateId()}@example.com`;
 
     // Create user and log in to get a token for authenticated requests
-    await prisma.users.create({
-      data: {
-        user_id: userId,
-        name: 'Regular User',
-        email,
-        password: hashPassword('password123'),
-      },
+    const user = await userService.register({
+      name: 'Regular User',
+      email,
+      password: 'password123',
     });
+    userId = user.id;
 
     const loginResponse = await server.inject({
       method: 'POST',

@@ -3,6 +3,7 @@ import { cleanDb } from './helpers/db.js';
 import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
+import userService from '../src/services/UserService.js';
 
 describe('Rating API Tests', () => {
   let server;
@@ -17,19 +18,16 @@ describe('Rating API Tests', () => {
   beforeEach(async () => {
     await cleanDb();
 
-    userId = generateId();
     destId = generateId();
     const email = `user_${generateId()}@example.com`;
 
     // Create user and log in to get a token for authenticated requests
-    await prisma.users.create({
-      data: {
-        user_id: userId,
-        name: 'Regular User',
-        email,
-        password: hashPassword('password123'),
-      },
+    const user = await userService.register({
+      name: 'Regular User',
+      email,
+      password: 'password123',
     });
+    userId = user.id;
 
     const loginResponse = await server.inject({
       method: 'POST',
@@ -198,16 +196,12 @@ describe('Rating API Tests', () => {
       });
 
       // User 2 rates 3
-      const userId2 = generateId();
       const email2 = `user2_${generateId()}@example.com`;
 
-      await prisma.users.create({
-        data: {
-          user_id: userId2,
-          name: 'Second User',
-          email: email2,
-          password: hashPassword('password123'),
-        },
+      await userService.register({
+        name: 'Second User',
+        email: email2,
+        password: 'password123',
       });
 
       const loginResponse = await server.inject({

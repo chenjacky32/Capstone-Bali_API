@@ -3,6 +3,7 @@ import { cleanDb } from './helpers/db.js';
 import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
+import userService from '../src/services/UserService.js';
 
 describe('User API Tests', () => {
   let server;
@@ -62,15 +63,11 @@ describe('User API Tests', () => {
 
     test('should fail when email is already registered', async () => {
       const email = `john_${generateId()}@example.com`;
-      const id = generateId();
 
-      await prisma.users.create({
-        data: {
-          user_id: id,
-          name: 'Existing User',
-          email,
-          password: hashPassword('password123'),
-        },
+      await userService.register({
+        name: 'Existing User',
+        email,
+        password: 'password123',
       });
 
       const response = await server.inject({
@@ -96,16 +93,13 @@ describe('User API Tests', () => {
 
     beforeEach(async () => {
       email = `john_${generateId()}@example.com`;
-      userId = generateId();
 
-      await prisma.users.create({
-        data: {
-          user_id: userId,
-          name: 'John Doe',
-          email,
-          password: hashPassword('password123'),
-        },
+      const user = await userService.register({
+        name: 'John Doe',
+        email,
+        password: 'password123',
       });
+      userId = user.id;
     });
 
     test('should login successfully with valid credentials', async () => {
@@ -193,16 +187,13 @@ describe('User API Tests', () => {
   describe('GET /users/me', () => {
     test('should successfully retrieve current user profile with valid token', async () => {
       const email = `john_${generateId()}@example.com`;
-      const userId = generateId();
 
-      await prisma.users.create({
-        data: {
-          user_id: userId,
-          name: 'John Doe',
-          email,
-          password: hashPassword('password123'),
-        },
+      const user = await userService.register({
+        name: 'John Doe',
+        email,
+        password: 'password123',
       });
+      const userId = user.id;
 
       const loginResponse = await server.inject({
         method: 'POST',
