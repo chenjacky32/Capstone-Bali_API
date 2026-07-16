@@ -22,8 +22,6 @@ const init = async () => {
     console.log('Koneksi ke Database Berhasil');
   } catch (error) {
     console.error('Koneksi Ke Database Gagal :', error.message);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
