@@ -1,6 +1,6 @@
 import { customAlphabet } from 'nanoid';
 import destinationModel from '../models/DestinationModel.js';
-import avgRatingMiddleware from '../utils/AvgRating.js';
+import avgRatingHelper from '../utils/AvgRating.js';
 
 class DestinationService {
   constructor() {
@@ -44,7 +44,7 @@ class DestinationService {
       throw new Error('Destination not found');
     }
 
-    return await avgRatingMiddleware.calculate(dest);
+    return await avgRatingHelper.calculate(dest);
   }
 
   async deleteDestinationById(id) {
@@ -61,7 +61,7 @@ class DestinationService {
 
   async getAllDestinations() {
     const destinations = await destinationModel.findAll();
-    return await Promise.all(destinations.map(avgRatingMiddleware.calculate));
+    return await Promise.all(destinations.map(avgRatingHelper.calculate));
   }
 }
 
