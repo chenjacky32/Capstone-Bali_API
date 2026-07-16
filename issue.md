@@ -1,294 +1,12 @@
-# [PLAN & PROMPT TEMPLATE] Refactoring Arsitektur Berlapis Berbasis OOP (Layered OOP Architecture)
-
-Dokumen ini berisi **perencanaan teknis spesifik** serta **template prompt/instruksi per fitur** yang ditujukan untuk **Junior Programmer** atau **AI Model (_Cost-Effective Model_)**.
-
-Tujuan utama refactoring ini adalah memigrasikan struktur kode aplikasi dari yang saat ini terkumpul di `src/handler/*` menjadi **Arsitektur Berlapis (_Layered Architecture_)** dengan paradigma **Object-Oriented Programming (OOP)** menggunakan bahasa **JavaScript (ES6+ Class)**.
-
----
-
-## 🏗️ 1. Standar Struktur Folder & Penamaan File
-
-Seluruh kode sumber di dalam folder `src/` wajib direstrukturisasi mengikuti susunan berikut:
-
-```text
-src/
-├── config/             # Konfigurasi koneksi database (Prisma client), variabel environment, dll.
-├── routes/             # Pendaftaran endpoint HTTP dan penghubung ke Controller & Middleware
-├── controllers/        # Penerima HTTP Request, pemanggil Service, dan pengirim HTTP Response
-├── services/           # Logika bisnis utama (Business Logic, validasi aturan bisnis)
-├── models/             # Abstraksi/wrapper akses data ke ORM Prisma (Database Access Layer)
-├── middlewares/        # Interceptor request (Otentikasi JWT, kalkulasi rating otomatis, logger)
-└── utils/              # Helper function & formatting umum yang dapat dipakai berulang
-```
-
-### 📋 Aturan Wajib Penamaan File (_PascalCase_)
-
-Setiap file di dalam folder tersebut **wajib menggunakan format PascalCase** dengan akhiran perannya:
-
-- **Routes**: `UserRoute.js`, `DestinationRoute.js`, `RatingRoute.js`, `BookmarkRoute.js`
-- **Controllers**: `UserController.js`, `DestinationController.js`, `RatingController.js`, `BookmarkController.js`
-- **Services**: `UserService.js`, `DestinationService.js`, `RatingService.js`, `BookmarkService.js`
-- **Models**: `UserModel.js`, `DestinationModel.js`, `RatingModel.js`, `BookmarkModel.js`
-- **Middlewares**: `AuthMiddleware.js`, `AvgRatingMiddleware.js`, `ErrorMiddleware.js`
-- **Config**: `DatabaseConfig.js`, `EnvConfig.js`
-- **Utils**: `ResponseHelper.js`, `ValidationHelper.js`
-
----
-
-## 🏛️ 2. Standar Penulisan Kode Berorientasi Objek (OOP)
-
-Semua lapisan (_Layer_) wajib ditulis menggunakan sintaks **Class JavaScript (ES6+)** dan diekspor berupa _instance_ atau _Class_ dengan pemisahan tanggung jawab yang tegas:
-
-1. **Model Layer (`*Model.js`)**:
-
-   - Hanya boleh berisi interaksi database via Prisma (`prisma.*.findMany()`, `prisma.*.create()`, dll.).
-   - Tidak boleh mengelola `req` atau `res` HTTP.
-
-   ```javascript
-   // Contoh standar UserModel.js
-   import prisma from '../config/DatabaseConfig.js';
-
-   class UserModel {
-     async findByEmail(email) {
-       return await prisma.user.findUnique({ where: { email } });
-     }
-     async create(data) {
-       return await prisma.user.create({ data });
-     }
-   }
-   export default new UserModel();
-   ```
-
-2. **Service Layer (`*Service.js`)**:
-
-   - Menerima input dari Controller, memvalidasi aturan bisnis, memanggil Model, dan mengembalikan hasil pengolahan data.
-   - Tidak boleh bersentuhan langsung dengan objek `req` dan `res` Express.
-
-   ```javascript
-   // Contoh standar UserService.js
-   import userModel from '../models/UserModel.js';
-
-   class UserService {
-     async getProfile(userId) {
-       const user = await userModel.findById(userId);
-       if (!user) throw new Error('User tidak ditemukan');
-       return user;
-     }
-   }
-   export default new UserService();
-   ```
-
-3. **Controller Layer (`*Controller.js`)**:
-
-   - Bertanggung jawab mengekstrak `req.body`, `req.params`, `req.query`, memanggil method di Service, serta memformat `res.status().json()`.
-
-   ```javascript
-   // Contoh standar UserController.js
-   import userService from '../services/UserService.js';
-   import responseHelper from '../utils/ResponseHelper.js';
-
-   class UserController {
-     async getProfile(req, res, next) {
-       try {
-         const data = await userService.getProfile(req.user.id);
-         return responseHelper.success(
-           res,
-           200,
-           'Berhasil mengambil profil',
-           data,
-         );
-       } catch (error) {
-         return responseHelper.error(res, 404, error.message);
-       }
-     }
-   }
-   export default new UserController();
-   ```
-
-4. **Route Layer (`*Route.js`)**:
-
-   - Menghubungkan path URL dengan method di Controller dan menyisipkan Middleware jika diperlukan.
-
-   ```javascript
-   // Contoh standar UserRoute.js
-   import express from 'express';
-   import userController from '../controllers/UserController.js';
-   import authMiddleware from '../middlewares/AuthMiddleware.js';
-
-   const router = express.Router();
-
-   router.get(
-     '/profile',
-     authMiddleware.verifyToken,
-     userController.getProfile,
-   );
-
-   export default router;
-   ```
-
----
-
-## 🤖 3. TEMPLATE PROMPT UNTUK AI AGENT / JUNIOR PROGRAMMER (PER FITUR)
-
-Gunakan **Template Prompt** di bawah ini secara mandiri/berurutan (_satu per satu_) kepada AI Agent atau Junior Programmer agar pengerjaan fokus, terstruktur, dan minim risiko regresi.
-
----
-
-### 📦 TEMPLATE PROMPT 1: Persiapan Fondasi (`config`, `utils`, `middlewares`)
-
-```markdown
-<TASK>
-Lakukan refactoring dan pembuatan file fondasi utama aplikasi sesuai standar arsitektur OOP JavaScript di dalam folder `src/`.
-
-Ikuti instruksi berikut secara tepat:
-
-1. Buat file `src/config/DatabaseConfig.js`:
-   - Gunakan Class atau Singleton export yang menginisialisasi instance `@prisma/client` agar dapat diimport secara konsisten oleh seluruh Model.
-2. Buat file `src/utils/ResponseHelper.js`:
-   - Buat Class `ResponseHelper` dengan method `success(res, statusCode, message, data)` dan `error(res, statusCode, message, errors)` untuk menstandarisasi seluruh respons JSON di aplikasi.
-3. Buat file `src/middlewares/AuthMiddleware.js`:
-   - Buat Class `AuthMiddleware` dengan method `verifyToken(req, res, next)` (dan method otorisasi lain jika ada di kode lama) untuk memvalidasi JWT token dari header `Authorization`.
-4. Pindahkan logika dari `src/middleware/Count-Avg-Rating.js` (dan `src/db/prisma.js` jika ada) ke folder baru (`src/middlewares/AvgRatingMiddleware.js` dan `src/config/DatabaseConfig.js`) dengan format nama PascalCase dan struktur Class OOP JavaScript.
-5. Pastikan semua file menggunakan sintaks impor/ekspor yang konsisten (sesuai type di package.json) dan tidak merusak fungsi yang sudah ada.
-   </TASK>
-```
-
----
-
-### 👤 TEMPLATE PROMPT 2: Refactoring Fitur Users & Authentication (`Authuser`)
-
-```markdown
-<TASK>
-Lakukan refactoring total untuk fitur **User & Authentication** dari struktur lama di folder `src/handler/Authuser/` menjadi struktur arsitektur berlapis berbasis OOP JavaScript.
-
-Aturan & Langkah Kerja:
-
-1. **Model Layer (`src/models/UserModel.js`)**:
-   - Buat Class `UserModel`.
-   - Implementasikan method untuk query database Prisma seperti `findByEmail(email)`, `findById(id)`, `create(userData)`, `update(id, data)`, dll.
-2. **Service Layer (`src/services/UserService.js`)**:
-   - Buat Class `UserService` yang mengimport `UserModel`.
-   - Implementasikan method logika bisnis seperti `register(data)`, `login(email, password)` (termasuk verifikasi bcrypt & generate JWT), `getProfile(userId)`, dll.
-3. **Controller Layer (`src/controllers/UserController.js`)**:
-   - Buat Class `UserController` yang memanggil `UserService`.
-   - Implementasikan method `register(req, res)`, `login(req, res)`, `getProfile(req, res)` dan format kembalian menggunakan `ResponseHelper`.
-4. **Route Layer (`src/routes/UserRoute.js`)**:
-   - Buat router Express yang memetakan endpoint `/api/auth/register`, `/api/auth/login`, `/api/users/...` ke `UserController`. Gunakan `AuthMiddleware` untuk endpoint yang wajib login.
-5. Setelah selesai, hapus/gantikan referensi kode lama di rute utama agar menggunakan `UserRoute.js` yang baru.
-   </TASK>
-```
-
----
-
-### 🏝️ TEMPLATE PROMPT 3: Refactoring Fitur Destinations (`Destinations`)
-
-```markdown
-<TASK>
-Lakukan refactoring untuk fitur **Destinations** dari struktur lama di folder `src/handler/Destinations/` menjadi struktur arsitektur berlapis berbasis OOP JavaScript.
-
-Aturan & Langkah Kerja:
-
-1. **Model Layer (`src/models/DestinationModel.js`)**:
-   - Buat Class `DestinationModel` untuk mengambil data dari tabel destinasi di Prisma (`findMany`, `findById`, `search`, `create`, `update`, `delete`).
-2. **Service Layer (`src/services/DestinationService.js`)**:
-   - Buat Class `DestinationService` untuk mengolah filter pencarian, paginasi, penggabungan data rating rata-rata, atau logika bisnis destinasi wisata.
-3. **Controller Layer (`src/controllers/DestinationController.js`)**:
-   - Buat Class `DestinationController` untuk menangani HTTP request daftar destinasi, detail destinasi berdasarkan ID, pencarian, dan pembuatan/edit destinasi (jika ada fitur admin). Gunakan `ResponseHelper`.
-4. **Route Layer (`src/routes/DestinationRoute.js`)**:
-   - Daftarkan endpoint destinasi ke `DestinationController`.
-5. Verifikasi bahwa semua properti response sesuai dengan kontrak API yang ada sebelumnya.
-   </TASK>
-```
-
----
-
-### ⭐ TEMPLATE PROMPT 4: Refactoring Fitur Ratings & Ulasan (`Ratings`)
-
-```markdown
-<TASK>
-Lakukan refactoring untuk fitur **Ratings & Reviews** dari struktur lama di folder `src/handler/Ratings/` menjadi struktur arsitektur berlapis berbasis OOP JavaScript.
-
-Aturan & Langkah Kerja:
-
-1. **Model Layer (`src/models/RatingModel.js`)**:
-   - Buat Class `RatingModel` dengan method untuk menambahkan rating (`create`), mengambil rating per destinasi (`findByDestinationId`), dan menghitung agregasi (`aggregate`).
-2. **Service Layer (`src/services/RatingService.js`)**:
-   - Buat Class `RatingService`. Pastikan setiap penambahan/perubahan ulasan memvalidasi keberadaan user dan destinasi, serta memicu pembaruan rata-rata rating (bisa berkoordinasi dengan `AvgRatingMiddleware.js` atau pemanggilan model terkait).
-3. **Controller Layer (`src/controllers/RatingController.js`)**:
-   - Buat Class `RatingController` untuk mengekstrak input ulasan dari `req.body` dan `req.user`, lalu mengembalikan status sukses via `ResponseHelper`.
-4. **Route Layer (`src/routes/RatingRoute.js`)**:
-   - Daftarkan endpoint HTTP untuk penambahan dan pembacaan rating, serta pasang `AuthMiddleware` pada endpoint post/update/delete rating.
-     </TASK>
-```
-
----
-
-### 🔖 TEMPLATE PROMPT 5: Refactoring Fitur Bookmarks (`Bookmarks`)
-
-```markdown
-<TASK>
-Lakukan refactoring untuk fitur **Bookmarks** (Simpan Destinasi Favorit) dari folder `src/handler/Bookmarks/` menjadi struktur arsitektur berlapis berbasis OOP JavaScript.
-
-Aturan & Langkah Kerja:
-
-1. **Model Layer (`src/models/BookmarkModel.js`)**:
-   - Buat Class `BookmarkModel` yang menangani operasi Prisma untuk menambah bookmark (`create`), menghapus bookmark (`delete`), dan melihat daftar bookmark milik user (`findByUserId`).
-2. **Service Layer (`src/services/BookmarkService.js`)**:
-   - Buat Class `BookmarkService` yang mengecek apakah destinasi sudah di-bookmark sebelumnya (mencegah duplikat data) sebelum memanggil `BookmarkModel`.
-3. **Controller Layer (`src/controllers/BookmarkController.js`)**:
-   - Buat Class `BookmarkController` yang menangani endpoint tambah/hapus/get bookmarks berdasarkan `req.user.id`.
-4. **Route Layer (`src/routes/BookmarkRoute.js`)**:
-   - Buat definisi router dengan proteksi `AuthMiddleware.verifyToken`.
-     </TASK>
-```
-
----
-
-### 🔄 TEMPLATE PROMPT 6: Integrasi Akhir & Pembersihan (`index.js` & `routes/`)
-
-```markdown
-<TASK>
-Lakukan integrasi akhir seluruh rute berformat OOP dan bersihkan file/folder handler lama yang sudah direfaktur.
-
-Langkah Kerja:
-
-1. Buka atau buat file router utama (misalnya `src/routes/IndexRoute.js` atau di `index.js`).
-2. Impor seluruh rute yang baru dibuat:
-   - `UserRoute.js`
-   - `DestinationRoute.js`
-   - `RatingRoute.js`
-   - `BookmarkRoute.js`
-3. Daftarkan rute-rute tersebut ke instance aplikasi Express (`app.use('/api/v1/users', userRoute)`, dst.).
-4. Lakukan verifikasi menyeluruh: pastikan tidak ada lagi file yang mengimport atau bergantung pada folder lama (`src/handler/*` dan `src/middleware/Count-Avg-Rating.js`).
-5. Hapus folder `src/handler/` lama jika semua endpoint telah diuji dan berfungsi sempurna pada struktur baru.
-   </TASK>
-```
-
----
-
-## ✅ 4. Checklist Pengujian & Verifikasi Pasca-Refactoring
-
-Bagi Junior Programmer atau AI yang menjalankan tugas ini, wajib memverifikasi hal berikut sebelum menyelesaikan setiap tahap:
-
-- [ ] **KONSISTENSI NAMA FILE**: Apakah nama file sudah persis berformat **PascalCase** (`*Route.js`, `*Controller.js`, `*Service.js`, `*Model.js`)?
-- [ ] **KONSISTENSI OOP CLASS**: Apakah setiap file didefinisikan sebagai `class ClassName { ... }` dan diekspor dengan benar?
-- [ ] **TIDAK ADA KEBOCORAN LAYER**:
-  - Model tidak mengandung `req`/`res`.
-  - Service tidak mengandung `req`/`res`.
-  - Controller tidak mengandung sintaks Prisma/query SQL secara langsung.
-- [ ] **PENGETESAN ENDPOINT**: Coba jalankan server (`npm run dev` atau `node index.js`) dan pastikan seluruh API dapat diakses normal tanpa error _syntax_ atau _module not found_.
-
----
-
-## 🧪 5. Perencanaan Unit Test (Untuk Junior Programmer / AI Model)
-
-Buat unit test untuk seluruh API Route yang tersedia menggunakan **Jest**.
-
-- Lokasi file test: Folder `tests/`
-- Framework: **Jest**
-- **Setiap test scenario wajib menghapus data terkait terlebih dahulu** sebelum dijalankan, agar setiap test bersifat konsisten dan idempoten.
-- Siapkan environment `.env.test` khusus untuk testing (database terpisah atau schema terpisah).
-- Jalankan server Hapi dalam mode test sebelum suite dimulai, dan matikan setelah semua test selesai.
+# Pembuatan Unit Test untuk Seluruh API Capstone Bali
+
+Issue ini berisi daftar perencanaan skenario _unit test_ komprehensif yang harus diimplementasikan guna memastikan fungsionalitas dan keamanan REST API Capstone Bali.
+
+## Spesifikasi Teknis & Aturan
+- **Tech Stack:** Hapi.js (server), Prisma ORM (PostgreSQL/Supabase), JWT (`jsonwebtoken`) untuk autentikasi, SHA-256 (`crypto`) untuk _password hashing_.
+- **Tooling/Framework:** Wajib menggunakan `Jest` sebagai _test runner_.
+- **Lokasi Direktori:** Simpan seluruh rincian dan hirarki _file test_ pada susunan _folder_ `tests/`.
+- **State Management (SANGAT PENTING):** Pada setiap transisi sebelum _test block_ _(setup/beforeEach)_ atau antar skenario eksekusi, wujudkan instruksi untuk **selalu menghapus data tabel yang berkaitan terlebih dahulu**. Ini wajib dilakukan supaya _database_ selalu berada dalam _state_ yang steril dan pengujian konsisten dari hulu ke hilir tanpa terganggu sisa data observasi sebelumnya.
 
 ### Struktur Folder Test
 
@@ -300,120 +18,93 @@ tests/
 └── bookmark.test.js
 ```
 
----
+## Scope Endpoint & Target Skenario Pengujian
 
-### Test: User Routes (`tests/user.test.js`)
-
-**`POST /register`**
-
-| Skenario | Expected |
-|---|---|
-| Register berhasil dengan data lengkap | Status `201`, respons berisi `id`, `name`, `email` |
-| Register gagal jika `email` sudah digunakan | Status `400` |
-| Register gagal jika ada field yang kosong | Status `400` |
-
-**`POST /login`**
-
-| Skenario | Expected |
-|---|---|
-| Login berhasil dengan kredensial valid | Status `200`, respons berisi `accessToken` |
-| Login gagal dengan password salah | Status `401` |
-| Login gagal dengan email yang tidak terdaftar | Status `401` |
-| Login gagal jika `email` atau `password` kosong | Status `400` |
-
-**`GET /users/me`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil mendapatkan profil dengan token valid | Status `200`, respons berisi `id`, `name`, `email` |
-| Gagal tanpa token | Status `401` |
-| Gagal dengan token tidak valid atau kadaluarsa | Status `401` |
+Instruksi pengkodean diserahkan pada pihak yang mengimplementasikan. Seluruh _developer_ ditekankan merakit instruksi _unit test_ spesifik pada kerangka skenario di bawah ini selengkapnya.
 
 ---
 
-### Test: Destination Routes (`tests/destination.test.js`)
+### 1. API Registrasi User (`POST /register`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Pendaftaran berhasil mencetak kembalian status `201` ketika diumpankan _request payload_ yang seratus persen benar dan _valid_ (`name`, `email`, dan `password`). Pastikan balutan _response_ JSON memuntahkan properti `id`, `name`, dan `email` dari user yang baru saja tercipta.
+2. **Skenario Gagal (Parameter Kosong/Hilang):** Validasi menanggapi tangkisan `400 Bad Request` saat _payload_ ada bagian parameter properti esensialnya yang absen — entah `name`, `email`, maupun `password` yang mangkir dari isian.
+3. **Skenario Gagal (Konflik Data):** Pengujian dengan mendaftarkan alamat email identik untuk kedua kalinya yang menuntut adanya tanggapan peringatan `Email Already Use` dengan status `400`.
 
-**`POST /destinations`**
+### 2. API Login User (`POST /login`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Autentikasi yang direspons mulus. Lakukan registrasi _dummy_ via utilitas dulu, lanjutkan pendaratan akun memakai `email` maupun `password` otentik itu. Pastikan _response_-nya memuntahkan objek `accessToken` yang merupakan JWT _string_ sah bertanda tangan `HS256`.
+2. **Skenario Gagal (Password Salah):** Pelemparan status `401 Unauthorized` beserta pesan `Invalid email or password` andai sandi _(password)_ yang diinputkan sengaja dibedakan/disalahkan dari yang tersimpan di pangkalan data.
+3. **Skenario Gagal (User Fiktif):** Terjaganya _endpoint_ agar mengembalikan `401` jika email pengguna memang tidak eksis di dalam tabel `users`.
+4. **Skenario Gagal (Email Kosong):** Penolakan dengan status `400` bilamana properti `email` dikirimkan kosong atau nihil dari _payload_, memicu pesan `Email is not allowed to be Empty`.
+5. **Skenario Gagal (Password Kosong):** Penolakan serupa dengan status `400` bilamana properti `password` dikirimkan kosong, memicu pesan `Password is not allowed to be Empty`.
 
-| Skenario | Expected |
-|---|---|
-| Berhasil menambahkan destinasi dengan data lengkap | Status `201`, respons berisi `id`, `name`, `location` |
-| Gagal jika ada field yang kosong | Status `400` |
-| Gagal jika nama destinasi sudah ada (duplikat) | Status `400` |
-| Gagal tanpa token | Status `401` |
-
-**`GET /destinations`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil mendapatkan semua destinasi | Status `200`, respons berupa array |
-| Setiap item berisi field `avgRating` | Status `200` |
-
-**`GET /destinations/{id}`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil mendapatkan detail destinasi berdasarkan ID | Status `200`, respons berisi `avgRating` |
-| Gagal jika ID tidak ditemukan | Status `404` |
-
-**`DELETE /destinations/{id}`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil menghapus destinasi | Status `200` |
-| Gagal jika ID tidak ditemukan | Status `404` |
-| Gagal tanpa token | Status `401` |
+### 3. API Get Profile User (`GET /users/me`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Ciptakan profil & sesi aktif melalui registrasi dan login utilitas. Hantam _API endpoint_ dengan embel-embel _header_ `Authorization: Bearer <accessToken>`. Konfirmasikan jika balutan data JSON kembaliannya (`id`, `name`, `email`) sinkron dengan riwayat database awal yang diinsersikan saat _setup_.
+2. **Skenario Gagal (Ketiadaan Kredensial):** Evaluasi jaminan API menjegal panggilan jika properti `Authorization` absen dari konfigurasi _header_. Ekspektasi tegas: status `401`.
+3. **Skenario Gagal (Token Palsu/Kedaluwarsa):** Demonstrasi ditolaknya serbuan yang melibatkan karangan _token_ asal-asalan yang tidak cocok dengan _secret_ JWT server. Status kembalian wajib `401`.
 
 ---
 
-### Test: Rating Routes (`tests/rating.test.js`)
+### 4. API Tambah Destinasi (`POST /destinations`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Penyisipan destinasi wisata baru berhasil dengan status `201` ketika _payload_ lengkap (`name`, `description`, `img`, `location`) dikirimkan bersama _header_ `Authorization` yang mengandung _token_ terautentikasi. Verifikasi respons mengandung `id`, `name`, `description`, `img`, dan `location`.
+2. **Skenario Gagal (Parameter Kosong/Hilang):** Pelemparan `400` saat salah satu dari keempat properti esensial itu mangkir dari isian _payload_. Pesan: `Please fill all the fields`.
+3. **Skenario Gagal (Duplikat Nama):** Pengujian ganda — sisipkan destinasi dengan `name` identik untuk kedua kalinya. Ekspektasi: status `400` dengan pesan `Destination Already Exist`.
+4. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. API wajib mengembalikan status `401` tanpa toleransi.
 
-**`POST /destinations/{dest_id}/ratings`**
+### 5. API Ambil Semua Destinasi (`GET /destinations`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Pemanggilan endpoint tanpa autentikasi (publik). Pastikan respons `200` mengembalikan array destinasi di dalam objek `destinations`. Setiap elemen wajib memiliki properti `avgRating` yang dikalkulasi oleh `RatingService.calculateRating`.
+2. **Skenario Kosong:** Apabila tabel `destination` dalam keadaan steril (kosong sepenuhnya), respons tetap `200` dengan array `destinations` berisi nol elemen.
 
-| Skenario | Expected |
-|---|---|
-| Berhasil memberi rating (1–5) pada destinasi | Status `200`, respons berisi `id`, `rating`, `dest_id` |
-| Memberi rating lagi pada destinasi yang sama akan **mengupdate** rating sebelumnya | Status `200`, nilai `rating` berubah |
-| Gagal jika `rating` di luar range 1–5 | Status `400` |
-| Gagal jika `rating` bukan bertipe number | Status `400` |
-| Gagal jika `dest_id` tidak ditemukan | Status `404` |
-| Gagal tanpa token | Status `401` |
-| Setelah diberi rating, `avgRating` destinasi berubah secara akurat | `GET /destinations/{id}` mengembalikan nilai `avgRating` yang benar |
+### 6. API Ambil Destinasi per ID (`GET /destinations/{id}`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Sisipkan satu destinasi _dummy_ via _setup_. Panggil endpoint dengan `id` yang valid. Konfirmasikan respons `200` dengan properti `id`, `name`, `description`, `img`, `location`, dan `avgRating` yang terkalkulasi. Jika belum ada rating, `avgRating` wajib bernilai `0`.
+2. **Skenario Gagal (ID Tidak Ditemukan):** Kirimkan `id` mengarang yang tidak terdaftar di tabel `destination`. Status kembalian wajib `404` dengan pesan `Destination not found`.
+
+### 7. API Hapus Destinasi (`DELETE /destinations/{id}`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Sisipkan destinasi _dummy_, kemudian hapus menggunakan _token_ terautentikasi. Pastikan respons `200` memuntahkan `id` destinasi yang telah dimusnahkan. Verifikasi bahwa _record_ benar-benar lenyap dari pangkalan data.
+2. **Skenario Gagal (ID Tidak Ditemukan):** Usahakan menghapus destinasi dengan `id` mengarang. Respons: `404` dengan pesan `Destination not found`.
+3. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status kembalian wajib `401`.
 
 ---
 
-### Test: Bookmark Routes (`tests/bookmark.test.js`)
+### 8. API Tambah/Update Rating (`POST /destinations/{dest_id}/ratings`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses (Rating Baru):** Ciptakan user dan destinasi _dummy_. Kirimkan rating `5` dengan _token_ terautentikasi. Pastikan respons `200` memuntahkan `id`, `rating`, `dest_id`, `dest_name`, `user_id`, dan `name`.
+2. **Skenario Sukses (Update Rating):** Setelah skenario pertama, kirimkan rating `3` pada destinasi yang sama dengan user yang sama. Ekspektasi: rating di database berubah dari `5` menjadi `3`, bukan membuat _record_ baru.
+3. **Skenario Gagal (Rating di Luar Jangkauan):** Kirimkan `rating: 0` atau `rating: 6`. Tangkisan `400` dengan pesan `Rating must be between 1 until 5`.
+4. **Skenario Gagal (Rating Bukan Number):** Kirimkan `rating: "lima"`. Tangkisan `400` dengan pesan `Rating must be a number`.
+5. **Skenario Gagal (Destinasi Fiktif):** Kirimkan rating ke `dest_id` yang tidak eksis di tabel `destination`. Status `404` dengan pesan `Destinations not found`.
+6. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status wajib `401`.
+7. **Skenario Integrasi (Validasi avgRating):** Setelah rating disisipkan, panggil `GET /destinations/{dest_id}` dan konfirmasikan bahwa nilai `avgRating` pada respons telah berubah secara akurat sesuai kalkulasi rata-rata.
 
-**`POST /destinations/{dest_id}/bookmarks`**
+---
 
-| Skenario | Expected |
-|---|---|
-| Berhasil melakukan bookmark destinasi | Status `200`, respons berisi `isBookmark: true` |
-| Melakukan bookmark pada destinasi yang sudah dibookmark (idempoten) | Status `200`, `isBookmark` tetap `true` |
-| Gagal jika `dest_id` tidak ditemukan | Status `404` |
-| Gagal tanpa token | Status `401` |
+### 9. API Bookmark Destinasi (`POST /destinations/{dest_id}/bookmarks`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses (Bookmark Baru):** Ciptakan user dan destinasi _dummy_. Kirimkan _request_ bookmark. Pastikan respons `200` dengan `isBookmark: true`, disertai `id`, `user_id`, `name`, `dest_id`, dan `dest_name`.
+2. **Skenario Sukses (Bookmark Idempoten):** Lakukan bookmark pada destinasi yang sudah pernah di-bookmark sebelumnya. Ekspektasi: respons tetap `200` dengan `isBookmark: true` tanpa duplikasi _record_ di tabel `bookmark_detail`.
+3. **Skenario Gagal (Destinasi Fiktif):** Kirimkan bookmark ke `dest_id` yang tidak eksis. Status `404` dengan pesan `Destinations not found`.
+4. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status wajib `401`.
 
-**`POST /destinations/{dest_id}/unbookmarked`**
+### 10. API Unbookmark Destinasi (`POST /destinations/{dest_id}/unbookmarked`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Bookmark destinasi terlebih dahulu via skenario sebelumnya, lalu kirimkan _request_ unbookmark. Pastikan respons `200` dengan `isBookmark: false`.
+2. **Skenario Gagal (Destinasi Fiktif):** Kirimkan unbookmark ke `dest_id` yang tidak eksis. Status `404`.
+3. **Skenario Gagal (Bookmark Tidak Ada):** Kirimkan unbookmark pada destinasi yang belum pernah di-bookmark sebelumnya oleh user tersebut. Status `404` dengan pesan `Bookmark not found`.
+4. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status wajib `401`.
 
-| Skenario | Expected |
-|---|---|
-| Berhasil menghapus bookmark destinasi | Status `200`, respons berisi `isBookmark: false` |
-| Gagal jika `dest_id` tidak ditemukan | Status `404` |
-| Gagal tanpa token | Status `401` |
+### 11. API Ambil Daftar Bookmark (`GET /destinations/bookmarks`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Bookmark beberapa destinasi, lalu panggil endpoint ini. Pastikan respons `200` mengembalikan array berisi item-item dengan `isBookmark: true`, lengkap dengan `id`, `user_id`, `name`, `dest_id`, dan `dest_name`.
+2. **Skenario Kosong:** Apabila user belum pernah melakukan bookmark sama sekali, respons tetap `200` dengan array kosong.
+3. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status wajib `401`.
 
-**`GET /destinations/bookmarks`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil mendapatkan daftar destinasi yang di-bookmark | Status `200`, array dengan `isBookmark: true` |
-| Respons kosong jika tidak ada bookmark aktif | Status `200`, array kosong |
-| Gagal tanpa token | Status `401` |
-
-**`GET /destinations/unbookmarked`**
-
-| Skenario | Expected |
-|---|---|
-| Berhasil mendapatkan daftar destinasi yang tidak di-bookmark | Status `200`, array dengan `isBookmark: false` |
-| Respons kosong jika tidak ada data unbookmark | Status `200`, array kosong |
-| Gagal tanpa token | Status `401` |
-
+### 12. API Ambil Daftar Unbookmarked (`GET /destinations/unbookmarked`)
+Opsi Tes Mencakup:
+1. **Skenario Sukses:** Bookmark destinasi lalu unbookmark. Panggil endpoint ini. Pastikan respons `200` mengembalikan array berisi item-item dengan `isBookmark: false`.
+2. **Skenario Kosong:** Apabila user belum pernah memiliki riwayat unbookmark, respons tetap `200` dengan array kosong.
+3. **Skenario Gagal (Tanpa Autentikasi):** Kirimkan _request_ tanpa _header_ `Authorization`. Status wajib `401`.
