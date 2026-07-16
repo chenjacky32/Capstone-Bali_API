@@ -1,16 +1,8 @@
-import crypto from 'crypto';
-import { customAlphabet } from 'nanoid';
 import userModel from '../models/UserModel.js';
-import { generateToken } from '../utils/JwtToken.js';
+import { generateToken, hashPassword } from '../utils/JwtToken.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class UserService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async register({ name, email, password }) {
     if (!name || !email || !password) {
       throw new Error('Please fill all the fields');
@@ -21,17 +13,14 @@ class UserService {
       throw new Error('Email Already Use');
     }
 
-    const id = this.generateId();
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
+    const id = generateId();
+    const hashedPassword = hashPassword(password);
 
     await userModel.create({
       user_id: id,
       name,
       email,
-      password,
+      password: hashedPassword,
     });
 
     return {
@@ -56,10 +45,7 @@ class UserService {
     }
 
     const user = userData[0];
-    const hashedPassword = crypto
-      .createHash('sha256')
-      .update(password)
-      .digest('hex');
+    const hashedPassword = hashPassword(password);
 
     const userPassword = user.password.replace(/^\\x/, '');
     if (hashedPassword !== userPassword) {

@@ -1,15 +1,9 @@
-import { customAlphabet } from 'nanoid';
 import ratingModel from '../models/RatingModel.js';
 import destinationModel from '../models/DestinationModel.js';
+import responseHelper from '../utils/ResponseHelper.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class RatingService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async addRating(userId, destId, rating) {
     if (!destId) {
       throw new Error('Destinations ID is required');
@@ -39,7 +33,7 @@ class RatingService {
         rating,
       });
     } else {
-      const id = this.generateId();
+      const id = generateId();
       ratingObj = await ratingModel.create({
         rating_id: id,
         user_id: userId,
@@ -57,6 +51,20 @@ class RatingService {
       name: ratingObj.users.name,
     };
   }
+
+  calculateRating = async (dest) => {
+    try {
+      const ratings = await ratingModel.findManyByDestId(dest.dest_id);
+      const totalRating = ratings.length;
+      const sumRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+      const avgRating = totalRating ? sumRating / totalRating : 0;
+      const roundedRating = parseFloat(avgRating.toFixed(1));
+      return responseHelper.AvgRatingResponse(dest, roundedRating);
+    } catch (error) {
+      console.error(error.message);
+      return responseHelper.AvgRatingResponse(dest, 0);
+    }
+  };
 }
 
 export default new RatingService();

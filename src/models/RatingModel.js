@@ -35,6 +35,14 @@ class RatingModel {
       },
     });
   }
+
+  async findManyByDestId(destId) {
+    return await prisma.rating.findMany({
+      where: {
+        dest_id: destId,
+      },
+    });
+  }
 }
 
 export default new RatingModel();

@@ -1,15 +1,8 @@
-import { customAlphabet } from 'nanoid';
 import bookmarkModel from '../models/BookmarkModel.js';
 import destinationModel from '../models/DestinationModel.js';
+import { generateId } from '../utils/IdGenerator.js';
 
 class BookmarkService {
-  constructor() {
-    this.generateId = customAlphabet(
-      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      10,
-    );
-  }
-
   async addBookmark(userId, destId) {
     if (!destId) {
       throw new Error('Destinations ID is required');
@@ -30,7 +23,7 @@ class BookmarkService {
         isBookmark: true,
       });
     } else {
-      const id = this.generateId();
+      const id = generateId();
       bookmark = await bookmarkModel.create({
         id,
         isBookmark: true,
