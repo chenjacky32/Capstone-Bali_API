@@ -98,6 +98,10 @@ class BookmarkService {
       isBookmark: bookmark.isBookmark,
     }));
   }
+
+  async cleanBookmarks() {
+    await bookmarkModel.deleteAll();
+  }
 }
 
 export default new BookmarkService();

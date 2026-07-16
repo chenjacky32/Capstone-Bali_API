@@ -56,6 +56,10 @@ class DestinationService {
     const destinations = await destinationModel.findAll();
     return await Promise.all(destinations.map(ratingService.calculateRating));
   }
+
+  async cleanDestinations() {
+    await destinationModel.deleteAll();
+  }
 }
 
 export default new DestinationService();

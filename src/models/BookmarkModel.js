@@ -46,6 +46,10 @@ class BookmarkModel {
       },
     });
   }
+
+  async deleteAll() {
+    return await prisma.bookmark_detail.deleteMany({});
+  }
 }
 
 export default new BookmarkModel();

@@ -69,6 +69,10 @@ class UserService {
       email: user.email,
     };
   }
+
+  async cleanUsers() {
+    await userModel.deleteAll();
+  }
 }
 
 export default new UserService();

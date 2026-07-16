@@ -70,6 +70,10 @@ class RatingService {
       return responseHelper.AvgRatingResponse(dest, 0);
     }
   };
+
+  async cleanRatings() {
+    await ratingModel.deleteAll();
+  }
 }
 
 export default new RatingService();

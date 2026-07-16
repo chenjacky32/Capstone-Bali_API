@@ -43,6 +43,10 @@ class RatingModel {
       },
     });
   }
+
+  async deleteAll() {
+    return await prisma.rating.deleteMany({});
+  }
 }
 
 export default new RatingModel();

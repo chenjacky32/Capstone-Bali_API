@@ -4,6 +4,9 @@ import prisma from '../src/config/DatabaseConfig.js';
 import { hashPassword } from '../src/utils/JwtToken.js';
 import { generateId } from '../src/utils/IdGenerator.js';
 import userService from '../src/services/UserService.js';
+import destinationService from '../src/services/DestinationService.js';
+import ratingService from '../src/services/RatingService.js';
+import bookmarkService from '../src/services/BookmarkService.js';
 
 describe('Destination API Tests', () => {
   let server;
@@ -93,16 +96,12 @@ describe('Destination API Tests', () => {
 
     test('should fail when name is duplicate', async () => {
       const name = `Tanah Lot ${generateId()}`;
-      const destId = generateId();
 
-      await prisma.destination.create({
-        data: {
-          dest_id: destId,
-          name_dest: name,
-          description: 'Original description',
-          img: 'https://example.com/tanahlot.jpg',
-          location: 'Tabanan',
-        },
+      await destinationService.addDestination({
+        name,
+        description: 'Original description',
+        img: 'https://example.com/tanahlot.jpg',
+        location: 'Tabanan',
       });
 
       const response = await server.inject({
@@ -146,27 +145,15 @@ describe('Destination API Tests', () => {
 
   describe('GET /destinations', () => {
     test('should successfully retrieve all destinations with avgRating', async () => {
-      const destId = generateId();
-      const rateId = generateId();
-
-      await prisma.destination.create({
-        data: {
-          dest_id: destId,
-          name_dest: `Uluwatu Temple ${generateId()}`,
-          description: 'Temple on cliff',
-          img: ' Uluwatu.jpg',
-          location: 'Badung',
-        },
+      const dest = await destinationService.addDestination({
+        name: `Uluwatu Temple ${generateId()}`,
+        description: 'Temple on cliff',
+        img: ' Uluwatu.jpg',
+        location: 'Badung',
       });
+      const destId = dest.id;
 
-      await prisma.rating.create({
-        data: {
-          rating_id: rateId,
-          rating: 5,
-          user_id: userId,
-          dest_id: destId,
-        },
-      });
+      await ratingService.addRating(userId, destId, 5);
 
       const response = await server.inject({
         method: 'GET',
@@ -185,9 +172,9 @@ describe('Destination API Tests', () => {
 
     test('should return empty destinations array when database is empty', async () => {
       // Clear specifically destination table to test empty return
-      await prisma.rating.deleteMany({});
-      await prisma.bookmark_detail.deleteMany({});
-      await prisma.destination.deleteMany({});
+      await ratingService.cleanRatings();
+      await bookmarkService.cleanBookmarks();
+      await destinationService.cleanDestinations();
 
       const response = await server.inject({
         method: 'GET',
@@ -203,17 +190,13 @@ describe('Destination API Tests', () => {
 
   describe('GET /destinations/{id}', () => {
     test('should retrieve destination by valid ID with avgRating', async () => {
-      const destId = generateId();
-
-      await prisma.destination.create({
-        data: {
-          dest_id: destId,
-          name_dest: `Uluwatu Temple ${generateId()}`,
-          description: 'Temple on cliff',
-          img: ' Uluwatu.jpg',
-          location: 'Badung',
-        },
+      const dest = await destinationService.addDestination({
+        name: `Uluwatu Temple ${generateId()}`,
+        description: 'Temple on cliff',
+        img: ' Uluwatu.jpg',
+        location: 'Badung',
       });
+      const destId = dest.id;
 
       const response = await server.inject({
         method: 'GET',
@@ -242,17 +225,13 @@ describe('Destination API Tests', () => {
 
   describe('DELETE /destinations/{id}', () => {
     test('should successfully delete destination when authenticated and ID exists', async () => {
-      const destId = generateId();
-
-      await prisma.destination.create({
-        data: {
-          dest_id: destId,
-          name_dest: `Uluwatu Temple ${generateId()}`,
-          description: 'Temple on cliff',
-          img: ' Uluwatu.jpg',
-          location: 'Badung',
-        },
+      const dest = await destinationService.addDestination({
+        name: `Uluwatu Temple ${generateId()}`,
+        description: 'Temple on cliff',
+        img: ' Uluwatu.jpg',
+        location: 'Badung',
       });
+      const destId = dest.id;
 
       const response = await server.inject({
         method: 'DELETE',
@@ -289,17 +268,13 @@ describe('Destination API Tests', () => {
     });
 
     test('should fail when deleting without token', async () => {
-      const destId = generateId();
-
-      await prisma.destination.create({
-        data: {
-          dest_id: destId,
-          name_dest: `Uluwatu Temple ${generateId()}`,
-          description: 'Temple on cliff',
-          img: ' Uluwatu.jpg',
-          location: 'Badung',
-        },
+      const dest = await destinationService.addDestination({
+        name: `Uluwatu Temple ${generateId()}`,
+        description: 'Temple on cliff',
+        img: ' Uluwatu.jpg',
+        location: 'Badung',
       });
+      const destId = dest.id;
 
       const response = await server.inject({
         method: 'DELETE',
