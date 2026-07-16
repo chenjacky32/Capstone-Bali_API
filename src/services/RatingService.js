@@ -1,6 +1,7 @@
 import { customAlphabet } from 'nanoid';
 import ratingModel from '../models/RatingModel.js';
 import destinationModel from '../models/DestinationModel.js';
+import responseHelper from '../utils/ResponseHelper.js';
 
 class RatingService {
   constructor() {
@@ -57,6 +58,20 @@ class RatingService {
       name: ratingObj.users.name,
     };
   }
+
+  calculate = async (dest) => {
+    try {
+      const ratings = await ratingModel.findManyByDestId(dest.dest_id);
+      const totalRating = ratings.length;
+      const sumRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+      const avgRating = totalRating ? sumRating / totalRating : 0;
+      const roundedRating = parseFloat(avgRating.toFixed(1));
+      return responseHelper.AvgRatingResponse(dest, roundedRating);
+    } catch (error) {
+      console.error(error.message);
+      return responseHelper.AvgRatingResponse(dest, 0);
+    }
+  };
 }
 
 export default new RatingService();

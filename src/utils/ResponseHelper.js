@@ -24,6 +24,17 @@ class ResponseHelper {
     response.code(statusCode);
     return response;
   }
+
+  AvgRatingResponse(dest, avgRating) {
+    return {
+      id: dest.dest_id,
+      name: dest.name_dest,
+      description: dest.description,
+      img: dest.img,
+      location: dest.location,
+      avgRating,
+    };
+  }
 }
 
 export default new ResponseHelper();
